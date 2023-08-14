@@ -1,8 +1,4 @@
 """
-wikklytext.parser.py: Base parser interface to
-wikklytext.lexer. Part of the WikklyText suite.
-
-Copyright (C) 2007,2008 Frank McIngvale
 Copyright (C) 2023 Diedrich Vorberg
 
 Contact: diedrich@tux4web.de
