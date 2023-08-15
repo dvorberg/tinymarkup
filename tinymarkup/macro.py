@@ -15,8 +15,7 @@
 
 import inspect, functools, html, dataclasses
 
-from .exceptions import UnknownLanguage
-
+from .exceptions import UnknownLanguage, UnknownMacro
 
 class Macro(object):
     """
@@ -27,8 +26,9 @@ class Macro(object):
     name = None
 
     def __init__(self, context):
+        if self.name is None:
+            self.name = self.__class__.__name__
         self.context = context
-
 
 class MacroLibrary(dict):
     def __init__(self, *macros):
