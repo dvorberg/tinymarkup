@@ -64,3 +64,7 @@ class LexerWrapper(object):
     @remainder.setter
     def remainder(self, remainder:str):
         set_remainder(self.base, remainder)
+
+    @property
+    def lexmatch(self):
+        return self.base.lexmatch
