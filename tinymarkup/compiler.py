@@ -1,8 +1,10 @@
 import dataclasses
+from io import StringIO
 
 from .context import Context
 from .parser import Parser
 from .exceptions import Location
+from .utils import html_start_tag
 
 class Compiler(object):
     def __init__(self, context:Context=None):
@@ -27,6 +29,70 @@ class Compiler(object):
         before the compilation result may be retrieved.
         """
         pass
+
+class HTMLCompiler_mixin(object):
+    """
+    Utility functions and datastructures for compilers that output HTML.
+    """
+    block_level_tags = { "div", "p", "ol", "ul", "li", "blockquote", "code",
+                         "table", "tbody", "thead", "tr", "td", "th",
+                         "dl", "dt", "dd",
+                         "h1", "h2", "h3", "h4", "h5", "h6", }
+
+    # Tags that like to stand on a line by themselves.
+    loner_tags = { "ol", "ul", "code", "table", "tbody", "thead", "tr", "dl",}
+
+    def begin_html_document(self):
+        self.output = StringIO()
+        self.tag_stack = []
+
+    def end_html_document(self):
+        self.close_all()
+
+    def print(self, *args, **kw):
+        print(*args, **kw, file=self.output)
+
+    def get_html(self):
+        return self.output.getvalue()
+
+    def open(self, tag, **params):
+        # If we’re in a <p> and we’re opening a block level element,
+        # close the <p> first.
+        #if self.tag_stack and self.tag_stack[-1] == "p" \
+        #   and tag in self.block_level_tags:
+        #    self.close("p")
+        if tag in self.loner_tags:
+            end = "\n"
+        else:
+            end = ""
+
+        self.print(html_start_tag(tag, **params), end=end)
+        self.tag_stack.append(tag)
+
+    def close(self, tag):
+        if tag in self.block_level_tags:
+            end = "\n"
+        else:
+            end = ""
+
+        self.print(f"</{tag}>", end=end)
+
+        if not self.tag_stack or self.tag_stack[-1] != tag:
+            raise InternalError(f"Internal error. HTML nesting failed. "
+                                f"Can’t close “{tag}”. "
+                                f"Tag stack: {repr(self.tag_stack)}.",
+                                location=self.parser.location)
+        else:
+            self.tag_stack.pop()
+
+    def close_all(self):
+        if self._table:
+            self.endTable()
+
+        while self.tag_stack:
+            self.close(self.tag_stack[-1])
+
+
 
 class CompilerDuplexer(object):
     """
