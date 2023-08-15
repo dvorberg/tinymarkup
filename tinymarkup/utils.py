@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 
-import html, copy, dataclasses
+import html, copy, dataclasses, re
 
 import ply.lex
 
@@ -47,3 +47,12 @@ def set_remainder(lexer:ply.lex.Lexer, remainder:str):
 
 def get_location(lexer:ply.lex.Lexer) -> Location:
     return Location.from_baselexer(lexer)
+
+param_re = re.compile(r'([-a-zA-Z]+)=(?:(?:\'([^\']*))|(?:\"([^\"]*)\"))')
+def parse_tag_params(params):
+    if not params:
+        return {}
+
+    return dict([ (name, single or double,)
+                  for (name, single, double)
+                    in param_re.findall(params) ])
