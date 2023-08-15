@@ -3,7 +3,7 @@ from io import StringIO
 
 from .context import Context
 from .parser import Parser
-from .exceptions import Location
+from .exceptions import Location, InternalError
 from .utils import html_start_tag
 
 class Compiler(object):
@@ -43,17 +43,16 @@ class HTMLCompiler_mixin(object):
     loner_tags = { "ol", "ul", "code", "table", "tbody", "thead", "tr", "dl",}
 
     def begin_html_document(self):
-        self.output = StringIO()
         self.tag_stack = []
+        assert hasattr(self, "output"), InternalError(
+            "Please set compiler.output")
 
     def end_html_document(self):
         self.close_all()
 
     def print(self, *args, **kw):
+        args = [ arg for arg in args if arg is not None ]
         print(*args, **kw, file=self.output)
-
-    def get_html(self):
-        return self.output.getvalue()
 
     def open(self, tag, **params):
         # If we’re in a <p> and we’re opening a block level element,
