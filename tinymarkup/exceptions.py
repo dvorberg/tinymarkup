@@ -12,7 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import dataclasses, io
+import dataclasses, io, pathlib
 import ply.lex
 
 @dataclasses.dataclass
@@ -44,12 +44,14 @@ class MarkupError(Exception):
 	'trace' is exception trace (raw text) , or '' if no exception occurred.
 	'location' is buffer after point of error.
 	"""
-    def __init__(self, message:str, trace=None, location:Location=None):
+    def __init__(self, message:str, trace=None,
+                 location:Location=None, filepath=pathlib.Path):
         Exception.__init__(self, message)
 
         self.message = message
         self.trace = trace
         self.location = location
+        self.filepath = filepath
 
     @property
     def lineno(self):
@@ -73,7 +75,12 @@ class MarkupError(Exception):
 
         say(f"{self.message}")
         if self.location:
-            say(f"Line: {self.lineno}")
+            if self.filepath is not None:
+                fname = "In " + self.filepath.name
+            else:
+                fname = "Line"
+
+            say(f"{fname}:{self.lineno}")
             say(f"Looking at: {repr(self.looking_at)}")
 
         if self.trace:
