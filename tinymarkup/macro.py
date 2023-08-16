@@ -37,13 +37,13 @@ class MacroLibrary(dict):
         for macro in macros:
             self.register(macro)
 
-    def register(self, macro_class:type[Macro]):
+    def register(self, macro_class:type[Macro], update=False):
         """
         Register a macro class with this library using its “name” attribute
         or its class name, if not present.
         """
         name = macro_class.name or macro_class.__name__
-        if name in self:
+        if not update and name in self:
             raise NameError(f"A macro named {name} already exists.")
         else:
             self[name] = macro_class
@@ -60,9 +60,9 @@ class MacroLibrary(dict):
 
         return self[name]
 
-    def extend(self, other):
+    def extend(self, other, update=False):
         for item in other.values():
-            self.register(item)
+            self.register(item, update)
 
     def __repr__(self):
         return self.__class__.__name__ + ":" + super().__repr__()
