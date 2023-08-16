@@ -1,5 +1,5 @@
 import sys, os, os.path as op, time, argparse, pathlib, subprocess
-import traceback, re
+import traceback, re, imp
 
 from .exceptions import MarkupError
 from .context import Context
@@ -65,9 +65,15 @@ class CmdlineTool(object):
         Process -m switches.
         """
         for m in self.args.modules:
-            m = __import__(m)
-            self.context.module_library.extend(
-                m.module_library, update=True)
+            module = __import__(m)
+            imp.reload(module)
+
+            for p in m.split(".")[1:]:
+                module = getattr(module, p)
+                imp.reload(module)
+
+            self.context.macro_library.extend(module.macro_library,
+                                              update=True)
 
     lange_spec_re = re.compile("([a-z]{2}):(.+)")
     def process_languages(self):
@@ -156,6 +162,7 @@ class CmdlineTool(object):
 
         for infilepath in self.args.infilepaths:
             self.process(infilepath)
+            self.process_modules() # Reload the modules after each file.
 
         self.end_html()
 
