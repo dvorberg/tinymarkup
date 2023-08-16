@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 
-from .language import Languages
+from .language import Language, Languages
 from .macro import MacroLibrary
 
 ## Context
@@ -23,8 +23,8 @@ class Context(object):
         self.macro_library = macro_library
         self.languages = languages
 
-    def register_language(self, language):
+    def register_language(self, language:Language):
         self.languages.register(language)
 
-    def language(self, iso):
+    def language(self, iso:str):
         return self.languages.by_iso(iso)
