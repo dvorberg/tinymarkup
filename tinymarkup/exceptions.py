@@ -21,18 +21,20 @@ class Location:
     looking_at: str
 
     @classmethod
+    def from_lexdatapos(Location, lexdata, lexpos):
+        lineno = lexdata[:lexpos].count("\n") + 1
+        remainder = lexdata[lexpos:]
+        return Location( lineno = lineno, looking_at = remainder[:40])
+
+
+    @classmethod
     def from_lextoken(Location, lextoken:ply.lex.LexToken):
-        lineno = lextoken.lexer.lexdata[:lextoken.lexpos].count("\n") + 1
-        remainder = lextoken.lexer.lexdata[lextoken.lexpos:]
-        return Location( lineno = lineno,
-                         looking_at = remainder[:40])
+        return Location.from_lexdatapos(lextoken.lexer.lexdata,
+                                        lextoken.lexpos)
 
     @classmethod
     def from_baselexer(Location, lexer):
-        lineno = lexer.lexdata[:lexer.lexpos].count("\n") + 1
-        remainder = lexer.lexdata[lexer.lexpos:]
-        return Location( lineno = lineno,
-                         looking_at = remainder[:40])
+        return Location.from_lexdatapos(lexer.lexdata, lexer.lexpos)
 
 class MarkupError(Exception):
     """
