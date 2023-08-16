@@ -23,6 +23,9 @@ class Context(object):
         self.macro_library = macro_library
         self.languages = languages
 
+    def link_target_to_href(self, target):
+        return target
+
     def register_language(self, language:Language):
         self.languages.register(language)
 
