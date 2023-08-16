@@ -15,7 +15,7 @@
 
 import inspect, functools, html, dataclasses
 
-from .exceptions import UnknownLanguage, UnknownMacro
+from .exceptions import UnknownLanguage, UnknownMacro, UnsuitableMacro
 
 class Macro(object):
     """
@@ -25,10 +25,45 @@ class Macro(object):
     # The “name” will be used in the macro library.
     name = None
 
-    def __init__(self, context):
-        if self.name is None:
-            self.name = self.__class__.__name__
+    # This determins where a macro may be used. Checked by __init__().
+    environments = { "block", "inline" }
+
+    @classmethod
+    def check_environment(Macro, environment):
+        """
+        Called by __init__() to check against self.environments.
+        Don’t forget to make this a @classmethod when overloading.
+        """
+        if not environment in Macro.environments:
+            name = Macro.get_name()
+            envs = ", ".join(sorted(list(Macro.environments)))
+            raise UnsuitableMacro(f"Macro “{name}” may only be used in "
+                                  f"{envs} environment(s).")
+
+    @classmethod
+    def get_name(Macro):
+        if Macro.name is None:
+            return Macro.__name__
+        else:
+            return Macro.name
+
+    @property
+    def environment(self):
+        return self._environment
+
+    @property
+    def end(self):
+        if self.environment == "block":
+            return "\n"
+        else:
+            return ""
+
+    def __init__(self, context, environment):
+        self.name = self.get_name()
         self.context = context
+
+        self.check_environment(environment)
+        self._environment = environment
 
 class MacroLibrary(dict):
     def __init__(self, *macros):
