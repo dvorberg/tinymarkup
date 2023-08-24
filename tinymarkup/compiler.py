@@ -1,6 +1,8 @@
 import dataclasses
 from io import StringIO
 
+from ll.xist import xsc
+
 from .context import Context
 from .parser import Parser
 from .exceptions import Location, InternalError
@@ -42,6 +44,9 @@ class HTMLCompiler_mixin(object):
     # Tags that like to stand on a line by themselves.
     loner_tags = { "ol", "ul", "code", "table", "tbody", "thead", "tr", "dl",}
 
+    def __init__(self, output):
+        self.output = output
+
     def begin_html_document(self):
         self.tag_stack = []
         assert hasattr(self, "output"), InternalError(
@@ -51,7 +56,12 @@ class HTMLCompiler_mixin(object):
         self.close_all()
 
     def print(self, *args, **kw):
-        args = [ arg for arg in args if arg is not None ]
+        def convert(a):
+            if isinstance(a, xsc.Node):
+                return a.string()
+            else:
+                return a
+        args = [ convert(arg) for arg in args if arg is not None ]
         print(*args, **kw, file=self.output)
 
     def open(self, tag, **params):
