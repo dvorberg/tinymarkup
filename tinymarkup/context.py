@@ -12,6 +12,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+from ll.xist.ns import html
 
 from .language import Language, Languages
 from .macro import MacroLibrary
@@ -23,8 +24,8 @@ class Context(object):
         self.macro_library = macro_library
         self.languages = languages
 
-    def link_target_to_href(self, target):
-        return target
+    def html_link_element(self, target, text):
+        return html.a(text, href="target", class_="t4wiki-link")
 
     def register_language(self, language:Language):
         self.languages.register(language)
