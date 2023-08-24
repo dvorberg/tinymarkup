@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 
-import dataclasses
+import re, dataclasses
 
 ## Languages
 @dataclasses.dataclass
@@ -21,11 +21,26 @@ class Language(object):
     iso: str
     tsearch_configuration: str
 
+config_string_re = re.compile(r"([a-z]{2}):([-_a-zA-Z0-9]+)(?:[,; ]+|$)")
 class Languages(dict):
     def __init__(self, *languages):
         super().__init__()
         for language in languages:
             self.register(language)
+
+    @classmethod
+    def from_config_string(Languages, config):
+        """
+        Create a Languages object from a string representation typically
+        used in config files and on the command line. Expects “iso:name” pairs
+        with space, “,” or “;” as separators, as in:
+
+           'en:english; de:german'
+
+        """
+        result = config_string_re.findall(config)
+        langs = [ Language(iso, name) for iso, name in result ]
+        return Languages(*langs)
 
     def register(self, language):
         self[language.iso] = language
