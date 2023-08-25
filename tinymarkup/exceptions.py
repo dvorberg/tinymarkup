@@ -47,7 +47,7 @@ class MarkupError(Exception):
 	'location' is buffer after point of error.
 	"""
     def __init__(self, message:str, trace=None,
-                 location:Location=None, filepath=pathlib.Path):
+                 location:Location=None, filepath:pathlib.Path=None):
         Exception.__init__(self, message)
 
         self.message = message
@@ -78,7 +78,9 @@ class MarkupError(Exception):
         say(f"{self.message}")
         if self.location:
             if self.filepath is not None:
-                fname = "In " + self.filepath.name
+                fname = self.filepath.name
+                if " " in fname: fname = repr(fname)
+                fname = "In " + fname
             else:
                 fname = "Line"
 
