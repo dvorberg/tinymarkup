@@ -3,6 +3,7 @@ import traceback, re, imp
 
 from .exceptions import MarkupError
 from .context import Context
+from .language import Language
 
 class CmdlineTool(object):
     """
@@ -10,7 +11,7 @@ class CmdlineTool(object):
     """
     default_editor = "emacs"
 
-    def __init__(self, context:Context=None):
+    def __init__(self, extra_context=None):
         """
         Starting with a copy of the standard macro library loaded
         .macro, extend it by all the ones in `extra_macro_libraries`,
@@ -19,12 +20,14 @@ class CmdlineTool(object):
         Default argument processing will afterwards extend this macro
         library by all those modules given by -m switches.
         """
-        if context is None:
-            self.context = self.default_context()
-        else:
-            self.context = context
+        self.make_context(extra_context)
+        if not hasattr(self, "context"):
+            raise ValueError("self.make_context() did not set self.context.")
 
-        self.args = self.make_argument_parser().parse_args()
+        parser = self.make_argument_parser()
+        self.error = parser.error
+
+        self.args = parser.parse_args()
 
     def make_argument_parser(self):
         """
@@ -47,7 +50,8 @@ class CmdlineTool(object):
             dest="languages",
             help="Add language to current context. Use “iso:config” where "
             "“iso” is a two-letter language code used internally and "
-            "“config” is the tsearch configuration name.")
+            "“config” is the tsearch configuration name. The first language "
+            "specified will be the root language of all documents processed. ")
 
         add("--editor", "-e", action="store_true",
             default=False,
@@ -76,6 +80,7 @@ class CmdlineTool(object):
                                               update=True)
 
     lange_spec_re = re.compile("([a-z]{2}):(.+)")
+    lang_env_re = re.compile("([a-z]){2}_.*")
     def process_languages(self):
         """
         Process -l switches.
@@ -86,6 +91,10 @@ class CmdlineTool(object):
                 raise ValueError("Not a valid language spec: {repr(l)}")
             lang, config = match.groups()
             self.context.register_language(Language(lang, config))
+
+        if len(self.context.languages) == 0:
+            self.error("You must specify at least one language "
+                       "so the document have a root language.")
 
     def begin_html(self):
         print('<!DOCTYPE html>',
@@ -119,6 +128,13 @@ class CmdlineTool(object):
         cmd = f'{editor} {lineinfo} "{infilepath.absolute()}"'
         subprocess.run(cmd, shell=True)
 
+    def make_context(self, extra_context:Context):
+        """
+        Set self.context to an appropriate Context object, maybe
+        incorporating the “extra_context” provided.
+        """
+        raise NotImplementedError()
+
     def to_html(self, outfile, source):
         raise NotImplementedError()
 
@@ -128,7 +144,7 @@ class CmdlineTool(object):
 
             try:
                 parse_start = time.time()
-                html = self.to_html(self.args.outfile, source)
+                self.to_html(self.args.outfile, source)
                 parse_end = time.time()
 
                 if self.args.timing:
