@@ -14,6 +14,7 @@
 
 from ll.xist.ns import html
 
+from .exceptions import UnknownLanguage
 from .language import Language, Languages
 from .macro import MacroLibrary
 
@@ -23,12 +24,27 @@ class Context(object):
                  languages:Languages=Languages()):
         self.macro_library = macro_library
         self.languages = languages
+        self._root_language = None
 
     def html_link_element(self, target, text):
         return html.a(text, href="target", class_="t4wiki-link")
 
     def register_language(self, language:Language):
         self.languages.register(language)
+        if self._root_language is None:
+            self._root_language = language
 
-    def language(self, iso:str):
+    def language_by_iso(self, iso:str):
         return self.languages.by_iso(iso)
+
+    @property
+    def root_language(self):
+        if self._root_language is None:
+            raise UnknownLanguage("No language specified, yet "
+                                  "(no root lanuage).")
+        return self._root_language
+
+    @root_language.setter
+    def root_language(self, language:Language):
+        assert language in self.languages, UnknownLanguage
+        self._root_language = language
