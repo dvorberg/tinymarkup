@@ -33,6 +33,7 @@ class LexerWrapper(object):
     """
     def __init__(self, lexer:ply.lex.Lexer):
         self.base = copy.copy(lexer)
+        self._current_token = None
 
     def tokenize(self, source:str):
         self._source = source
@@ -43,11 +44,16 @@ class LexerWrapper(object):
             if not token:
                 break
             else:
+                self._current_token = token
                 yield token
 
     @property
     def location(self) -> Location:
-        return Location.from_baselexer(self.base)
+        if (self._current_token is not None
+            and hasattr(self._current_token, "lexer")):
+            return Location.from_lextoken(self._current_token)
+        else:
+            return Location.from_baselexer(self.base)
 
     @property
     def remainder(self) -> str:
