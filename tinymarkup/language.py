@@ -47,6 +47,6 @@ class Languages(dict):
 
     def by_iso(self, iso):
         try:
-            return self[isi]
+            return self[iso]
         except KeyError:
             raise UnknownLanguage(f"Unknown language (ISO) code: “{iso}”")
