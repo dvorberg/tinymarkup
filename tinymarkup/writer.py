@@ -200,7 +200,7 @@ class TSearchWriter(Writer):
         if len(self.weight_stack) == 0:
             raise InternalError("Can’t pop last weight.")
 
-    def add_text(self, text:str, language:Language=None, weight="D"):
+    def write(self, text:str, language:Language=None, weight="D"):
         if ( self.setweight_writer is not None
              and self.setweight_writer.weight != weight):
             self.setweight_writer.finish()
@@ -240,10 +240,11 @@ class TSearchWriter(Writer):
 
     def finish_tsearch(self):
         self.setweight_writer.finish()
+        self.setweight_writer = None
 
     # Default compiler methods can be implemented here as follows:
     def word(self, s:str):
-        self.add_text(s, self.language_stack[-1], self.weight_stack[-1])
+        self.write(s, self.language_stack[-1], self.weight_stack[-1])
 
     def other_characters(self, s:str):
         """
