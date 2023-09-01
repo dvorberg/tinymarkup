@@ -15,11 +15,20 @@
 
 import re, dataclasses
 
+from .exceptions import UnknownLanguage
+
 ## Languages
 @dataclasses.dataclass
 class Language(object):
     iso: str
     tsearch_configuration: str
+
+    @property
+    def config_string(self):
+        return f"{self.iso}:{self.tsearch_configuration}"
+
+    def __hash__(self):
+        return hash(self.config_string)
 
 config_string_re = re.compile(r"([a-z]{2}):([-_a-zA-Z0-9]+)(?:[,; ]+|$)")
 class Languages(dict):
@@ -50,3 +59,9 @@ class Languages(dict):
             return self[iso]
         except KeyError:
             raise UnknownLanguage(f"Unknown language (ISO) code: “{iso}”")
+
+    def __contains__(self, language):
+        if isinstance(language, Language):
+            language = language.iso
+
+        return super().__contains__(language)
