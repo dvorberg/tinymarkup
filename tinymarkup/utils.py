@@ -22,9 +22,9 @@ from .exceptions import Location
 def html_start_tag(tag, **params):
     def fixkey(key):
         if key.endswith("_"):
-            return key[:-1]
-        else:
-            return key
+            key = key[:-1]
+
+        return key.replace("_", "-")
 
     if params:
         params = [ f'{fixkey(key)}="{html.escape(value)}"'
