@@ -49,27 +49,19 @@ class CompilerDuplexer(object):
     proxy. Any method called on it will be forwarded to methods by the
     same name on the managed compilers.
     """
-    @classmethod
-    def for_(cls, compilers):
+    def __init__(self, *compilers):
         """
         This is the constructor, implemented as classmethod because if
         there is only one compiler, it will just return it. Compilers may
         be None.
         """
-        compilers = [ c for c in compilers if c is not None ]
-
-        if len(compilers) == 1:
-            return compilers[0]
-        else:
-            self = cls()
-            self._compilers = compilers
+        self._compilers = [ c for c in compilers if c is not None ]
 
     def duplex(self, parser, source):
         parser.parse(source, self)
 
     def __getattr__(self, name):
-        compilers = super().__getattr__("_compilers")
-        return self.MethodProxy(compilers, name)
+        return self.MethodProxy(self._compilers, name)
 
     @dataclasses.dataclass
     class MethodProxy(object):
@@ -80,3 +72,6 @@ class CompilerDuplexer(object):
             for compiler in self.compilers:
                 method = getattr(compiler, self.method_name)
                 method(*args, *kw)
+
+        def __getattr__(self, name):
+            return getattr(getattr(self.compilers[0], self.method_name), name)
