@@ -239,7 +239,8 @@ class TSearchWriter(Writer):
             self.language_stack.pop()
 
     def finish_tsearch(self):
-        self.setweight_writer.finish()
+        if self.setweight_writer is not None:
+            self.setweight_writer.finish()
         self.setweight_writer = None
 
     # Default compiler methods can be implemented here as follows:
