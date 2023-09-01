@@ -31,6 +31,7 @@ class Context(object):
 
     def register_language(self, language:Language):
         self.languages.register(language)
+
         if self._root_language is None:
             self._root_language = language
 
@@ -46,5 +47,7 @@ class Context(object):
 
     @root_language.setter
     def root_language(self, language:Language):
-        assert language in self.languages, UnknownLanguage
+        if language not in self.languages:
+            raise UnknownLanguage(repr(language.iso) + " " +
+                                  repr(self.languages))
         self._root_language = language
