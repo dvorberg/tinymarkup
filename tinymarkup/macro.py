@@ -19,9 +19,8 @@ from .exceptions import UnknownLanguage, UnknownMacro, UnsuitableMacro
 
 class Macro(object):
     """
-    Base class for Wikkly Macros. The macro will be
+    Base class for Wikkly Macros.
     """
-
     # The “name” will be used in the macro library.
     name = None
 
@@ -83,10 +82,10 @@ class MacroLibrary(dict):
         else:
             self[name] = macro_class
 
-    def register_module(self, module):
+    def register_module(self, module, update=False):
         for item in module.values():
             if type(item) == type and issubclass(item, Macro):
-                self.register(item)
+                self.register(item, update)
 
     def get(self, name, location):
         if name not in self:
