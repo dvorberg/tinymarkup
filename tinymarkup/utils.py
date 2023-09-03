@@ -27,7 +27,7 @@ def html_start_tag(tag, **params):
         return key.replace("_", "-")
 
     if params:
-        params = [ f'{fixkey(key)}="{html.escape(value)}"'
+        params = [ f'{fixkey(key)}="{html.escape(str(value))}"'
                    for (key, value) in params.items() ]
         params = " " + " ".join(params)
     else:
