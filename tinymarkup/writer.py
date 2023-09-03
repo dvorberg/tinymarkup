@@ -48,9 +48,6 @@ class HTMLWriter(Writer):
         super().__init__(output, root_language)
         self.tag_stack = []
 
-    def write_root_language_tag(self):
-        self.open("div", lang=self.root_language.iso)
-
     def print(self, *args, **kw):
         def convert(a):
             if isinstance(a, xsc.Node):
