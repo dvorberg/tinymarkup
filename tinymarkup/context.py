@@ -27,7 +27,7 @@ class Context(object):
         self._root_language = None
 
     def html_link_element(self, target, text):
-        return html.a(text, href="target", class_="t4wiki-link")
+        return html.a(text, href=target, class_="t4wiki-link")
 
     def register_language(self, language:Language):
         self.languages.register(language)
