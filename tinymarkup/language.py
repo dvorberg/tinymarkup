@@ -30,6 +30,17 @@ class Language(object):
     def __hash__(self):
         return hash(self.config_string)
 
+    @property
+    def ui_name(self):
+        if self.tsearch_configuration == "simple":
+            # This assumes you don't want languages selectable in the UI
+            # that you didn’t bother to create a tsearch configuration for.
+            return None
+        else:
+            # This is usually the English name for the language.
+            # Use i18n to translate to usable values at template render time.
+            return self.tsearch_configuration.capitalize()
+
 config_string_re = re.compile(r"([a-z]{2}):([-_a-zA-Z0-9]+)(?:[,; ]+|$)")
 class Languages(dict):
     def __init__(self, *languages):
