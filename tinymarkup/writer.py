@@ -82,13 +82,17 @@ class HTMLWriter(Writer):
         if not self.tag_stack or self.tag_stack[-1] != tag:
             raise InternalError(f"Internal error. HTML nesting failed. "
                                 f"Can’t close “{tag}”. "
-                                f"Tag stack: {repr(self.tag_stack)}.",
-                                location=self.parser.location)
+                                f"Tag stack: {repr(self.tag_stack)}.")
         else:
             self.tag_stack.pop()
 
     def close_all(self):
-        while self.tag_stack:
+        """
+        Close all HTML elements up to the last opened blockquote. <blockquote>
+        is handled special because it’s the only HTML element that may contain
+        other HTML block level elements as paragraphs and lists.
+        """
+        while self.tag_stack and self.tag_stack[-1] != "blockquote":
             self.close(self.tag_stack[-1])
 
 
