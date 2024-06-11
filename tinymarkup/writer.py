@@ -185,7 +185,7 @@ class TSearchWriter(Writer):
         self.weight_stack = [ "D", ]
         self._started = False
 
-    def push_language(self, language):
+    def push_language(self, language:Language):
         self.language_stack.append(language)
 
     def pop_language(self):

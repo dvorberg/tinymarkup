@@ -20,9 +20,8 @@ class CmdlineTool(object):
         Default argument processing will afterwards extend this macro
         library by all those modules given by -m switches.
         """
-        self.make_context(extra_context)
-        if not hasattr(self, "context"):
-            raise ValueError("self.make_context() did not set self.context.")
+        self._context_class = Context
+        self.extra_context = extra_context
 
         parser = self.make_argument_parser()
         self.error = parser.error
@@ -46,13 +45,16 @@ class CmdlineTool(object):
             dest="modules",
             help="Add macro modules to the current context. The "
             "specified module must have a macro_library attribute.")
+        add("--context-class", "-c", default=None,
+            dest="context_class",
+            help="Import a class inheriting from tinymarkup.context.Context "
+            "and instantiate it for the current compiler.")
         add("--language", "-l", action="append", default=[],
             dest="languages",
             help="Add language to current context. Use “iso:config” where "
             "“iso” is a two-letter language code used internally and "
             "“config” is the tsearch configuration name. The first language "
             "specified will be the root language of all documents processed. ")
-
         add("--editor", "-e", action="store_true",
             default=False,
             help="Invoke $EDITOR on error. If the editor is  "
@@ -76,8 +78,21 @@ class CmdlineTool(object):
                 module = getattr(module, p)
                 imp.reload(module)
 
-            self.context.macro_library.extend(module.macro_library,
-                                              update=True)
+            self.context.macro_library.extend(
+                module.macro_library, update=True)
+
+    def process_context(self):
+        """
+        Process -c switch.
+        """
+        if self.args.context_class:
+            package_name, class_name = self.args.context_class.rsplit(".", 1)
+            package = __import__(package_name)
+            imp.reload(package)
+
+            module = getattr(package, package_name.rsplit(".", 1)[-1])
+            self._context_class = getattr(module, class_name)
+
 
     lange_spec_re = re.compile("([a-z]{2}):(.+)")
     lang_env_re = re.compile("([a-z]){2}_.*")
@@ -128,12 +143,13 @@ class CmdlineTool(object):
         cmd = f'{editor} {lineinfo} "{infilepath.absolute()}"'
         subprocess.run(cmd, shell=True)
 
-    def make_context(self, extra_context:Context):
+    def make_context(self):
         """
-        Set self.context to an appropriate Context object, maybe
-        incorporating the “extra_context” provided.
+        Return an appropriate Context object, maybe incorporating
+        the “extra_context” provided. By default instantiate
+        self._context_class which defaults to tinymarkup.context.Context.
         """
-        raise NotImplementedError()
+        return self._context_class()
 
     def to_html(self, outfile, source):
         raise NotImplementedError()
@@ -171,7 +187,11 @@ class CmdlineTool(object):
                     raise
 
     def __call__(self):
+        self.process_context()
+        self.context = self.make_context()
+
         self.process_modules()
+
         self.process_languages()
 
         self.begin_html()
