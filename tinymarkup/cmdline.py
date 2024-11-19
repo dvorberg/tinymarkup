@@ -1,5 +1,5 @@
 import sys, os, os.path as op, time, argparse, pathlib, subprocess
-import traceback, re, imp
+import traceback, re, importlib
 
 from .exceptions import MarkupError
 from .context import Context
@@ -72,11 +72,11 @@ class CmdlineTool(object):
         """
         for m in self.args.modules:
             module = __import__(m)
-            imp.reload(module)
+            importlib.reload(module)
 
             for p in m.split(".")[1:]:
                 module = getattr(module, p)
-                imp.reload(module)
+                importlib.reload(module)
 
             self.context.macro_library.extend(
                 module.macro_library, update=True)
@@ -88,7 +88,7 @@ class CmdlineTool(object):
         if self.args.context_class:
             package_name, class_name = self.args.context_class.rsplit(".", 1)
             package = __import__(package_name)
-            imp.reload(package)
+            importlib.reload(package)
 
             module = getattr(package, package_name.rsplit(".", 1)[-1])
             self._context_class = getattr(module, class_name)
