@@ -123,3 +123,9 @@ class UnsuitableMacro(MarkupError):
 
 class RestrictionError(MarkupError):
     pass
+
+class MacroError(MarkupError):
+    """
+    To be used by a macro’s methods.
+    """
+    pass
